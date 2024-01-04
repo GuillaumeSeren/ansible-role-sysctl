@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Include guillaumeseren.ansible_role_sysctl"
+      ansible.builtin.include_role:
+        name: "guillaumeseren.ansible_role_sysctl"
