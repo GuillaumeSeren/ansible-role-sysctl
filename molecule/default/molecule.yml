@@ -2,16 +2,10 @@
 dependency:
   name: galaxy
 driver:
-  name: docker
+  name: vagrant
 platforms:
-  - name: centos-stream8
-    image: quay.io/centos/centos:stream8
-    pre_build_image: true
+  - name: instance
 provisioner:
   name: ansible
-  inventory:
-    host_vars:
-      debian-bookworm:
-        ansible_python_interpreter: /usr/bin/python3
 verifier:
   name: ansible

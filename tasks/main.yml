@@ -1,8 +1,5 @@
 ---
-# tasks file for ansible_role_sysctl
-# - name: Display all variables/facts known for a host
-#   ansible.builtin.debug:
-#     var: hostvars
+# tasks file for vagrant
 - name: Display os family
   ansible.builtin.debug:
     var: ansible_facts["os_family"]
