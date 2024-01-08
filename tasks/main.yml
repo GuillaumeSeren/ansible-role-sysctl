@@ -9,3 +9,26 @@
   debug: msg="{{ ansible_distribution_version}}"
 - name: Distribution major version
   debug: msg="{{ ansible_distribution_major_version }}"
+- name: Check if sysctl file exist
+  stat:
+    path: "{{ sysctl.config_file }}"
+  register: sysctl_conf_file
+- fail:
+    msg: "Missing sysctl config_file ({{ sysctl.config_file }})"
+  when: sysctl_conf_file.stat.exists == false
+
+- name: Check if sysctl dir exist
+  stat:
+    path: "{{ sysctl.config_dir }}"
+  register: sysctl_conf_dir
+- fail:
+    msg: "Missing sysctl config dir ({{  sysctl.config_dir }})"
+  when: sysctl_conf_dir.stat.exists == false
+
+# 2 move the config file
+- name: Check if /etc/sysctl.conf is simlinked in /etc/sysctl.d/
+  file:
+    src: "{{ sysctl.config_file }}"
+    dest: "{{ sysctl.config_dir }}/99-sysctl.conf"
+    state: link
+  become: true

@@ -1,2 +1,6 @@
 ---
 # defaults file for ansible_role_sysctl
+sysctl:
+  config_file: /etc/sysctl.conf
+  config_file_pattern: "*.conf"
+  config_dir: /etc/sysctl.d
