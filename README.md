@@ -13,6 +13,13 @@ Role Variables
 
 A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
+Features
+--------
+* Check if the sysctl dir exist
+* Check if /etc/sysctl.conf exist and is a simlink to /etc/sysctl.d/99-sysctl.conf
+* *TODO*: Check if a key is already defined in any droplet in /etc/sysctl.d
+* *TODO*: Check if the kernel parameter need upgrade
+
 Dependencies
 ------------
 
