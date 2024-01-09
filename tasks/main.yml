@@ -1,14 +1,5 @@
 ---
 # tasks file for vagrant
-- name: Display os family
-  ansible.builtin.debug:
-    var: ansible_facts["os_family"]
-- name: Distribution
-  debug: msg="{{ ansible_distribution }}"
-- name: Distribution version
-  debug: msg="{{ ansible_distribution_version}}"
-- name: Distribution major version
-  debug: msg="{{ ansible_distribution_major_version }}"
 - name: Check if sysctl file exist
   stat:
     path: "{{ sysctl.config_file }}"
