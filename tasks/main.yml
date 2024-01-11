@@ -1,5 +1,4 @@
 ---
-# tasks file for vagrant
 - name: Check if sysctl file exist
   stat:
     path: "{{ sysctl.config_file }}"
@@ -16,10 +15,48 @@
     msg: "Missing sysctl config dir ({{  sysctl.config_dir }})"
   when: sysctl_conf_dir.stat.exists == false
 
-# 2 move the config file
 - name: Check if /etc/sysctl.conf is simlinked in /etc/sysctl.d/
   file:
     src: "{{ sysctl.config_file }}"
     dest: "{{ sysctl.config_dir }}/99-sysctl.conf"
     state: link
   become: true
+
+- name: Add simlink to expected
+  set_fact:
+    sysctl_config_files_new: "{{ sysctl_config_files_new + [ sysctl.config_dir + '/99-sysctl.conf' ] }}"
+- name: Add generated dropin to of expected
+  set_fact:
+    sysctl_config_files_new: "{{ sysctl_config_files_new + [ sysctl.config_dir + '/' + item.key + '.conf' ] }}"
+  loop: "{{ sysctl.dropin | dict2items }}"
+- debug:
+    msg: "{{ sysctl_config_files_new }}"
+
+- name: Search sysctl files
+  find:
+    paths: "{{ sysctl.config_dir }}"
+    file_type: any
+    patterns: "{{ sysctl.config_file_pattern }}"
+  register: find_sysctl_files
+
+- name: Add files to current
+  set_fact:
+     sysctl_config_files_current: "{{ sysctl_config_files_current + [ item.path ] }}"
+  loop: "{{ find_sysctl_files.files }}"
+
+- name: Detect newly created dropin
+  set_fact:
+    sysctl_config_files_diff: "{{ sysctl_config_files_current | difference(sysctl_config_files_new) }}"
+- debug:
+    msg:
+      - "{{ sysctl_config_files_diff }}"
+  when:
+    - sysctl_config_files_diff | length > 0
+    - sysctl_config_files_diff is defined
+- fail:
+    msg:
+      - "Please migrate old dropins in inventory"
+      - "{{ sysctl_config_files_diff }}"
+  when:
+    - sysctl_config_files_diff | length > 0
+    - sysctl_config_files_diff is defined

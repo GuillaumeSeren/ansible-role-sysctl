@@ -4,3 +4,13 @@ sysctl:
   config_file: /etc/sysctl.conf
   config_file_pattern: "*.conf"
   config_dir: /etc/sysctl.d
+  dropin:
+    10-swappiness:
+      'vm.swappiness': 1
+      'vm.vfs_cache_pressure': 50
+    00protected-links:
+      'fs.protected_symlinks': 1
+      'fs.protected_hardlinks': 1
+sysctl_config_files_new: []
+sysctl_config_files_current: []
+sysctl_config_files_diff: []
