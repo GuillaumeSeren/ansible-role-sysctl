@@ -8,9 +8,12 @@ sysctl:
     10-swappiness:
       'vm.swappiness': 1
       'vm.vfs_cache_pressure': 50
-    00protected-links:
-      'fs.protected_symlinks': 1
-      'fs.protected_hardlinks': 1
+    10-firewall:
+      'net.ipv4.ip_forward': 0
+      'net.ipv6.conf.default.forwarding': 0
+      'net.ipv6.conf.all.forwarding': 0
 sysctl_config_files_new: []
 sysctl_config_files_current: []
 sysctl_config_files_diff: []
+sysctl_dropin_source_conflict: []
+sysctl_dropin_value_current: {}

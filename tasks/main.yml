@@ -60,3 +60,71 @@
   when:
     - sysctl_config_files_diff | length > 0
     - sysctl_config_files_diff is defined
+
+- name: Search if key is declared elsewhere
+  command: grep -RlE '^{{ item.1.key }}(\s|)=.*' --exclude="{{ item.0.key }}.conf" {{ sysctl.config_dir }}
+  loop: "{{ sysctl.dropin | dict2items | flatten_item | subelements('value') }}"
+  register: sysctl_dropin_source_conflict
+  failed_when: false
+  changed_when: False
+  # check_mode: yes
+- fail:
+    msg:
+      - "Sysctl dropin already declared, please migrate"
+      - "{{ item }}"
+  loop: "{{ sysctl_dropin_source_conflict.results }}"
+  when:
+    - item.rc is defined and item.rc == 0
+    - not ansible_check_mode
+
+# idempotent loading, only hotload the module if not loaded
+- name: Get value of already loaded module
+  command: sysctl -n {{ item.1.key }}
+  loop: "{{ sysctl.dropin | dict2items | flatten_item | subelements('value') }}"
+  register: sysctl_modules_loaded
+  changed_when: False
+
+- set_fact:
+    sysctl_dropin_value_current: |
+      {%- set family = item.item.0.key -%}
+      {%- set key = item.item.1.key -%}
+      {%- set value = item.stdout -%}
+      {%- if value.isdigit() -%}
+        {%- set value = item.stdout | int -%}
+      {%- endif -%}
+      {%- if sysctl_dropin_value_current[family] is defined -%}
+        {%- set ret= sysctl_dropin_value_current[family] -%}
+          {%- set ignored = ret.update({key: value}|combine(ret)) -%}
+        {%- set ignored = sysctl_dropin_value_current.update({family: ret}) -%}
+      {%- else -%}
+        {%- set ret= dict() -%}
+        {%- set ignored = ret.update({key: value}|combine(ret)) -%}
+        {%- set ignored = sysctl_dropin_value_current.update({family: ret}) -%}
+      {%- endif -%}
+      {{ sysctl_dropin_value_current }}
+  loop: "{{ sysctl_modules_loaded.results }}"
+
+# Now we need to create a diff between new and actual state
+- set_fact:
+    sysctl_dropin_value_changed: "{{ sysctl_dropin_value_current | compare_dict_changed(sysctl.dropin) }}"
+
+- debug:
+    msg:
+      - "sysctl_dropin_value_changed:"
+      - "{{ sysctl_dropin_value_changed }}"
+
+- name: Hot-Apply needed changes
+  command: sysctl -q -w {{ item.1.key }}={{ item.1.value }}
+  loop: "{{ sysctl_dropin_value_changed | dict2items | flatten_item | subelements('value') }}"
+  become: true
+
+# @TODO: FIX blacklist or change filename for /etc/sysctl.d/00protected-links.conf
+- name: Export config files
+  template:
+    src: etc/sysctl.d/sysctl_conf.j2
+    dest: /etc/sysctl.d/{{ item.key }}.conf
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ sysctl.dropin | dict2items }}"
+  become: true
