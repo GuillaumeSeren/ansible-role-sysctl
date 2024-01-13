@@ -1,2 +1,6 @@
 ---
 # handlers file for ansible_role_sysctl
+  - name: Upgrade sysctl values
+    command: sysctl -q -w {{ item.1.key }}={{ item.1.value }}
+    loop: "{{ sysctl_dropin_value_changed | dict2items | flatten_item | subelements('value') }}"
+    become: true

@@ -110,13 +110,13 @@
 
 - debug:
     msg:
-      - "sysctl_dropin_value_changed:"
+      - "sysctl values need upgrade:"
       - "{{ sysctl_dropin_value_changed }}"
-
-- name: Hot-Apply needed changes
-  command: sysctl -q -w {{ item.1.key }}={{ item.1.value }}
-  loop: "{{ sysctl_dropin_value_changed | dict2items | flatten_item | subelements('value') }}"
-  become: true
+  changed_when: sysctl_dropin_value_changed|length > 0
+  when:
+    - sysctl_dropin_value_changed|length > 0
+  notify:
+    - Upgrade sysctl values
 
 # @TODO: FIX blacklist or change filename for /etc/sysctl.d/00protected-links.conf
 - name: Export config files
