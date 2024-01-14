@@ -1,0 +1,33 @@
+---
+- name: Check if sysctl file exist
+  stat:
+    path: "{{ sysctl.config_file }}"
+  register: sysctl_conf_file
+- fail:
+    msg: "Missing sysctl config_file ({{ sysctl.config_file }})"
+  when: sysctl_conf_file.stat.exists == false
+
+- name: Check if sysctl dir exist
+  stat:
+    path: "{{ sysctl.config_dir }}"
+  register: sysctl_conf_dir
+- fail:
+    msg: "Missing sysctl config dir ({{  sysctl.config_dir }})"
+  when: sysctl_conf_dir.stat.exists == false
+
+- name: Check if /etc/sysctl.conf is simlinked in /etc/sysctl.d/
+  file:
+    src: "{{ sysctl.config_file }}"
+    dest: "{{ sysctl.config_dir }}/99-sysctl.conf"
+    state: link
+  become: true
+
+- name: Add simlink to expected
+  set_fact:
+    sysctl_config_files_new: "{{ sysctl_config_files_new + [ sysctl.config_dir + '/99-sysctl.conf' ] }}"
+- name: Add generated dropin to of expected
+  set_fact:
+    sysctl_config_files_new: "{{ sysctl_config_files_new + [ sysctl.config_dir + '/' + item.key + '.conf' ] }}"
+  loop: "{{ sysctl.dropin | dict2items }}"
+- debug:
+    msg: "{{ sysctl_config_files_new }}"
