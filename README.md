@@ -17,8 +17,8 @@ Features
 --------
 * Check if the sysctl dir exist
 * Check if /etc/sysctl.conf exist and is a simlink to /etc/sysctl.d/99-sysctl.conf
-* *TODO*: Check if a key is already defined in any droplet in /etc/sysctl.d
-* *TODO*: Check if the kernel parameter need upgrade
+* Check if a key is already defined in any droplet in /etc/sysctl.d
+* Check if the kernel parameter need upgrade
 
 Dependencies
 ------------
