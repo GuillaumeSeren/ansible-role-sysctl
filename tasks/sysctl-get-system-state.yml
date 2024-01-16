@@ -1,0 +1,29 @@
+---
+- name: Search sysctl files
+  find:
+    paths: "{{ sysctl.config_dir }}"
+    file_type: any
+    patterns: "{{ sysctl.config_file_pattern }}"
+  register: find_sysctl_files
+
+- name: Add files to current
+  set_fact:
+     sysctl_config_files_current: "{{ sysctl_config_files_current + [ item.path ] }}"
+  loop: "{{ find_sysctl_files.files }}"
+
+- name: Detect newly created dropin
+  set_fact:
+    sysctl_config_files_diff: "{{ sysctl_config_files_current | difference(sysctl_config_files_new) }}"
+- debug:
+    msg:
+      - "{{ sysctl_config_files_diff }}"
+  when:
+    - sysctl_config_files_diff | length > 0
+    - sysctl_config_files_diff is defined
+- fail:
+    msg:
+      - "Please migrate old dropins in inventory"
+      - "{{ sysctl_config_files_diff }}"
+  when:
+    - sysctl_config_files_diff | length > 0
+    - sysctl_config_files_diff is defined
