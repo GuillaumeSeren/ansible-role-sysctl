@@ -2,6 +2,9 @@
 - name: Sysctl config base
   include_tasks: 'sysctl-config-base.yml'
 
+- name: Get sysctl system state
+  include_tasks: 'sysctl-get-system-state.yml'
+
 - name: Sysctl check if key already declared elsewhere
   include_tasks: 'sysctl-check-duplicate-key.yml'
 
